@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompTIA Network+ Annihilator Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            transition: background 0.5s;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #1e3c72;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .mode-toggle {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+        button.active {
+            background: #004085;
+            transform: scale(1.1);
+        }
+        button.inactive {
+            background: #6c757d;
+        }
+        .flashcard-container, .matching-container {
+            display: none;
+        }
+        .flashcard {
+            width: 400px;
+            height: 250px;
+            max-width: 100%;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            perspective: 1000px;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 12px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .flashcard-front {
+            background: #f9f9f9;
+        }
+        .flashcard-back {
+            background: #e0f7fa;
+            transform: rotateY(180deg);
+        }
+        .matching-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .matching-status {
+            width: 100%;
+            text-align: center;
+        }
+        .matching-content {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 20px;
+        }
+        .matching-terms, .matching-definitions {
+            width: 48%;
+            height: 300px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid #333;
+            overflow-y: auto;
+        }
+        .matching-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #000;
+            font-size: 1em;
+            font-weight: 500;
+            transition: transform 0.3s ease-in-out, opacity 0.5s, box-shadow 0.3s;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .matching-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+        }
+        .selected {
+            background: #bbdefb;
+            border: 2px solid #1976d2;
+            transform: scale(1.1);
+        }
+        .correct {
+            background: #c8e6c9;
+            border: 2px solid #388e3c;
+            color: #2e7d32;
+            animation: pop 0.5s forwards;
+            position: relative;
+        }
+        .incorrect {
+            background: #ffcdd2;
+            border: 2px solid #d32f2f;
+            color: #c62828;
+            animation: shake 0.3s;
+        }
+        h3 {
+            color: #1e3c72;
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+        #matches-left, #score, #section-label {
+            color: #1e3c72;
+            font-size: 1.2em;
+            margin: 5px 0;
+        }
+        .category-key {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        .category-key button {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #333;
+            transition: transform 0.3s, border 0.3s, background 0.3s;
+        }
+        .category-key button.active-category {
+            border: 2px solid #1e3c72;
+            transform: scale(1.1);
+        }
+        .category-key button:hover {
+            background: rgba(0, 123, 255, 0.2);
+        }
+        .network-concepts { background: #e3f2fd; }
+        .network-impl { background: #b3e5fc; }
+        .network-ops { background: #c8e6c9; }
+        .network-sec { background: #f3e5f5; }
+        .network-trouble { background: #fff3e0; }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: confetti-fall 1s ease-out forwards;
+        }
+        #victory-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            font-size: 2em;
+            color: #388e3c;
+            display: none;
+            animation: slide-in 0.5s ease-in-out, pulse 1s infinite;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 90%;
+            z-index: 1000;
+        }
+        .modal h4 {
+            color: #1e3c72;
+            margin: 0 0 10px 0;
+        }
+        .modal p {
+            color: #333;
+            margin: 10px 0;
+        }
+        .modal button {
+            background: #388e3c;
+            margin: 0 auto;
+            display: block;
+        }
+        .modal button:hover {
+            background: #2e7d32;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+        }
+        @keyframes slide-in {
+            0% { transform: translate(-50%, -100%); opacity: 0; }
+            100% { transform: translate(-50%, -50%); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CompTIA Network+ Annihilator Game</h1>
+        <div class="mode-toggle">
+            <button id="flashcard-btn" onclick="showFlashcards()" aria-label="Switch to Flashcard Mode">Flashcard Mode</button>
+            <button id="matching-btn" onclick="showMatching()" aria-label="Switch to Matching Mode">Matching Mode</button>
+        </div>
+
+        <!-- Flashcard Mode -->
+        <div id="flashcard-container" class="flashcard-container">
+            <div id="flashcard" class="flashcard">
+                <div class="flashcard-front"></div>
+                <div class="flashcard-back"></div>
+            </div>
+            <button onclick="nextFlashcard()">Next Card</button>
+        </div>
+
+        <!-- Matching Mode -->
+        <div id="matching-container" class="matching-container">
+            <div class="matching-status">
+                <div id="matches-left"></div>
+                <div id="score"></div>
+                <div id="section-label"></div>
+            </div>
+            <div class="category-key" id="category-key">
+                <button class="network-concepts" data-category="network-concepts" onclick="switchCategory('network-concepts')">Networking Concepts</button>
+                <button class="network-impl" data-category="network-impl" onclick="switchCategory('network-impl')">Network Implementations</button>
+                <button class="network-ops" data-category="network-ops" onclick="switchCategory('network-ops')">Network Operations</button>
+                <button class="network-sec" data-category="network-sec" onclick="switchCategory('network-sec')">Network Security</button>
+                <button class="network-trouble" data-category="network-trouble" onclick="switchCategory('network-trouble')">Network Troubleshooting</button>
+            </div>
+            <div class="matching-content">
+                <div class="matching-terms" id="matching-terms"></div>
+                <div class="matching-definitions" id="matching-definitions"></div>
+            </div>
+            <div style="width: 100%; text-align: center; margin-top: 20px;">
+                <button onclick="resetMatching()">Reset</button>
+            </div>
+        </div>
+        <div id="victory-message">Network+ Master!</div>
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div id="explanation-modal" class="modal" role="dialog" aria-labelledby="modal-title">
+            <h4 id="modal-title"></h4>
+            <p id="modal-definition"></p>
+            <p id="modal-explanation"></p>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Note: AudioContext may require user interaction to start in some browsers due to autoplay policies
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        const flashcards = [
+            { front: "What is the purpose of subnetting?", back: "Divides a network into smaller subnetworks for efficiency and security", category: "network-concepts" },
+            { front: "What protocol operates at Layer 4 of the OSI model?", back: "TCP (Transmission Control Protocol)", category: "network-concepts" },
+            { front: "What does CIDR notation represent?", back: "Classless Inter-Domain Routing, e.g., /24 for subnet mask", category: "network-concepts" },
+            { front: "What is the default port for HTTPS?", back: "Port 443", category: "network-concepts" },
+            { front: "What is the difference between TCP and UDP?", back: "TCP is connection-oriented, UDP is connectionless", category: "network-concepts" },
+            { front: "What does SDN stand for?", back: "Software-Defined Networking", category: "network-concepts" },
+            { front: "What is the purpose of VLANs?", back: "Segments network traffic logically without additional hardware", category: "network-concepts" },
+            { front: "What protocol resolves domain names to IP addresses?", back: "DNS (Domain Name System)", category: "network-concepts" },
+            { front: "What is the speed of a 10GBASE-T connection?", back: "10 Gbps", category: "network-concepts" },
+            { front: "What does QoS prioritize?", back: "Network traffic to ensure critical data delivery", category: "network-concepts" },
+            { front: "What is the range of private IPv4 addresses?", back: "10.0.0.0 - 10.255.255.255, 172.16.0.0 - 172.31.255.255, 192.168.0.0 - 192.168.255.255", category: "network-concepts" },
+            { front: "What is an APIPA address?", back: "169.254.x.x, assigned when DHCP fails", category: "network-concepts" },
+            { front: "What does NAT do?", back: "Translates private IP addresses to public IPs", category: "network-concepts" },
+            { front: "What is the purpose of ARP?", back: "Resolves IP addresses to MAC addresses", category: "network-concepts" },
+            { front: "What is the default port for SSH?", back: "Port 22", category: "network-concepts" },
+
+            { front: "What cable type supports 10 Gbps up to 100 meters?", back: "Cat6a", category: "network-impl" },
+            { front: "What device connects multiple network segments?", back: "Switch", category: "network-impl" },
+            { front: "What is the purpose of a WAP?", back: "Wireless Access Point, extends Wi-Fi coverage", category: "network-impl" },
+            { front: "What does SD-WAN improve?", back: "WAN performance across distributed locations", category: "network-impl" },
+            { front: "What frequency does 802.11ax (Wi-Fi 6) use?", back: "2.4 GHz, 5 GHz, and 6 GHz", category: "network-impl" },
+            { front: "What is a DMZ used for?", back: "Demilitarized Zone, isolates public-facing servers", category: "network-impl" },
+            { front: "What does a load balancer distribute?", back: "Network traffic across multiple servers", category: "network-impl" },
+            { front: "What is the max length of a fiber optic cable like 10GBASE-SR?", back: "300 meters", category: "network-impl" },
+            { front: "What protocol does DHCP use to assign IPs?", back: "UDP (ports 67 and 68)", category: "network-impl" },
+            { front: "What is the purpose of a VPN concentrator?", back: "Handles multiple VPN connections securely", category: "network-impl" },
+            { front: "What device performs NAT?", back: "Router", category: "network-impl" },
+            { front: "What is VxLAN used for?", back: "Virtual extensible LAN, scales large cloud networks", category: "network-impl" },
+            { front: "What does a patch panel organize?", back: "Network cabling in a rack", category: "network-impl" },
+            { front: "What is the benefit of link aggregation?", back: "Increases bandwidth and redundancy", category: "network-impl" },
+            { front: "What does STP prevent?", back: "Spanning Tree Protocol prevents network loops", category: "network-impl" },
+
+            { front: "What tool monitors network bandwidth usage?", back: "SNMP (Simple Network Management Protocol)", category: "network-ops" },
+            { front: "What does a baseline measure?", back: "Normal network performance for comparison", category: "network-ops" },
+            { front: "What is high availability achieved with?", back: "Redundancy and failover systems", category: "network-ops" },
+            { front: "What does Wireshark analyze?", back: "Network packets for troubleshooting", category: "network-ops" },
+            { front: "What is the purpose of a network diagram?", back: "Documents network topology", category: "network-ops" },
+            { front: "What does an SLA guarantee?", back: "Service Level Agreement ensures uptime/performance", category: "network-ops" },
+            { front: "What is the default port for SNMP?", back: "Port 161", category: "network-ops" },
+            { front: "What does a UPS protect against?", back: "Power outages for network devices", category: "network-ops" },
+            { front: "What is latency in networking?", back: "Delay in data transmission", category: "network-ops" },
+            { front: "What does NetFlow track?", back: "Network traffic patterns", category: "network-ops" },
+            { front: "What is a DRP?", back: "Disaster Recovery Plan, restores network after failure", category: "network-ops" },
+            { front: "What does MTBF measure?", back: "Mean Time Between Failures, device reliability", category: "network-ops" },
+            { front: "What is jitter?", back: "Variation in packet arrival time", category: "network-ops" },
+            { front: "What does a syslog server collect?", back: "Log messages from network devices", category: "network-ops" },
+            { front: "What is the purpose of a change management process?", back: "Controls network modifications", category: "network-ops" },
+
+            { front: "What does a firewall filter?", back: "Network traffic based on rules", category: "network-sec" },
+            { front: "What is a DDoS attack?", back: "Distributed Denial of Service, overwhelms network resources", category: "network-sec" },
+            { front: "What protocol secures web traffic?", back: "SSL/TLS", category: "network-sec" },
+            { front: "What does IPS stand for?", back: "Intrusion Prevention System", category: "network-sec" },
+            { front: "What is phishing in networking?", back: "Social engineering to steal credentials", category: "network-sec" },
+            { front: "What does WPA3 protect?", back: "Wi-Fi networks with stronger encryption", category: "network-sec" },
+            { front: "What is a VPN used for?", back: "Secures remote network connections", category: "network-sec" },
+            { front: "What does a honeypot do?", back: "Attracts and analyzes malicious activity", category: "network-sec" },
+            { front: "What is port scanning?", back: "Probes open ports for vulnerabilities", category: "network-sec" },
+            { front: "What does MAC filtering control?", back: "Device access based on MAC addresses", category: "network-sec" },
+            { front: "What is a zero-day exploit?", back: "Attack on unpatched vulnerabilities", category: "network-sec" },
+            { front: "What does RADIUS provide?", back: "Centralized authentication for network access", category: "network-sec" },
+            { front: "What is the purpose of a SIEM?", back: "Security Information and Event Management, monitors threats", category: "network-sec" },
+            { front: "What does EAP stand for?", back: "Extensible Authentication Protocol", category: "network-sec" },
+            { front: "What is a brute force attack?", back: "Tries multiple password combinations", category: "network-sec" },
+
+            { front: "What tool tests network connectivity?", back: "Ping", category: "network-trouble" },
+            { front: "What does traceroute show?", back: "Path packets take to a destination", category: "network-trouble" },
+            { front: "What causes packet loss?", back: "Network congestion or faulty hardware", category: "network-trouble" },
+            { front: "What tool checks DNS resolution?", back: "nslookup", category: "network-trouble" },
+            { front: "What does a cable tester verify?", back: "Cable continuity and wiring", category: "network-trouble" },
+            { front: "What is the first step in troubleshooting no connectivity?", back: "Verify physical connections", category: "network-trouble" },
+            { front: "What does netstat display?", back: "Active network connections and ports", category: "network-trouble" },
+            { front: "What causes high latency?", back: "Distance, congestion, or routing issues", category: "network-trouble" },
+            { front: "What tool measures signal strength?", back: "Wi-Fi analyzer", category: "network-trouble" },
+            { front: "What does a loopback test check?", back: "Local network interface functionality", category: "network-trouble" },
+            { front: "What is a common cause of duplicate IP addresses?", back: "Misconfigured DHCP", category: "network-trouble" },
+            { front: "What does arp -a show?", back: "ARP cache of IP-to-MAC mappings", category: "network-trouble" },
+            { front: "What indicates a switch loop?", back: "Broadcast storm or duplicate frames", category: "network-trouble" },
+            { front: "What tool captures packets for analysis?", back: "Wireshark", category: "network-trouble" },
+            { front: "How do you fix an incorrect subnet mask?", back: "Reconfigure to match network requirements", category: "network-trouble" }
+        ];
+
+        const matchingPairs = [
+            { term: "Subnetting", definition: "Divides a network into smaller segments", category: "network-concepts" },
+            { term: "TCP", definition: "Reliable, connection-oriented protocol", category: "network-concepts" },
+            { term: "UDP", definition: "Fast, connectionless protocol", category: "network-concepts" },
+            { term: "CIDR", definition: "Classless Inter-Domain Routing notation", category: "network-concepts" },
+            { term: "DNS", definition: "Resolves domain names to IP addresses", category: "network-concepts" },
+            { term: "SDN", definition: "Software-Defined Networking", category: "network-concepts" },
+            { term: "VLAN", definition: "Segments network traffic logically", category: "network-concepts" },
+            { term: "QoS", definition: "Prioritizes network traffic", category: "network-concepts" },
+            { term: "NAT", definition: "Translates private IPs to public", category: "network-concepts" },
+            { term: "ARP", definition: "Maps IP addresses to MAC addresses", category: "network-concepts" },
+            { term: "APIPA", definition: "Assigns 169.254.x.x when DHCP fails", category: "network-concepts" },
+            { term: "HTTPS", definition: "Secure web protocol on port 443", category: "network-concepts" },
+
+            { term: "Cat6a", definition: "Cable supporting 10 Gbps up to 100m", category: "network-impl" },
+            { term: "Switch", definition: "Connects devices in a network segment", category: "network-impl" },
+            { term: "WAP", definition: "Extends wireless network coverage", category: "network-impl" },
+            { term: "SD-WAN", definition: "Optimizes WAN across locations", category: "network-impl" },
+            { term: "802.11ax", definition: "Wi-Fi 6 standard with 6 GHz support", category: "network-impl" },
+            { term: "DMZ", definition: "Isolates public-facing servers", category: "network-impl" },
+            { term: "Load Balancer", definition: "Distributes traffic across servers", category: "network-impl" },
+            { term: "DHCP", definition: "Assigns IP addresses dynamically", category: "network-impl" },
+            { term: "VPN Concentrator", definition: "Manages multiple VPN tunnels", category: "network-impl" },
+            { term: "VxLAN", definition: "Scales large cloud networks", category: "network-impl" },
+            { term: "STP", definition: "Prevents network loops", category: "network-impl" },
+            { term: "Patch Panel", definition: "Organizes network cabling", category: "network-impl" },
+
+            { term: "SNMP", definition: "Monitors network performance", category: "network-ops" },
+            { term: "Baseline", definition: "Measures normal network activity", category: "network-ops" },
+            { term: "Wireshark", definition: "Analyzes network packets", category: "network-ops" },
+            { term: "SLA", definition: "Guarantees service performance", category: "network-ops" },
+            { term: "NetFlow", definition: "Tracks traffic patterns", category: "network-ops" },
+            { term: "DRP", definition: "Restores network after disaster", category: "network-ops" },
+            { term: "Latency", definition: "Delay in data transmission", category: "network-ops" },
+            { term: "Jitter", definition: "Variation in packet arrival", category: "network-ops" },
+            { term: "Syslog", definition: "Collects device log messages", category: "network-ops" },
+            { term: "UPS", definition: "Protects against power outages", category: "network-ops" },
+            { term: "MTBF", definition: "Measures device reliability", category: "network-ops" },
+            { term: "Change Management", definition: "Controls network updates", category: "network-ops" },
+
+            { term: "Firewall", definition: "Filters network traffic", category: "network-sec" },
+            { term: "DDoS", definition: "Overwhelms network resources", category: "network-sec" },
+            { term: "SSL/TLS", definition: "Encrypts web traffic", category: "network-sec" },
+            { term: "IPS", definition: "Prevents network intrusions", category: "network-sec" },
+            { term: "WPA3", definition: "Secures Wi-Fi with strong encryption", category: "network-sec" },
+            { term: "VPN", definition: "Encrypts remote connections", category: "network-sec" },
+            { term: "Honeypot", definition: "Attracts malicious activity", category: "network-sec" },
+            { term: "Port Scanning", definition: "Probes for open ports", category: "network-sec" },
+            { term: "RADIUS", definition: "Centralizes authentication", category: "network-sec" },
+            { term: "SIEM", definition: "Monitors security events", category: "network-sec" },
+            { term: "Zero-Day", definition: "Exploits unpatched flaws", category: "network-sec" },
+            { term: "Brute Force", definition: "Tries multiple passwords", category: "network-sec" },
+
+            { term: "Ping", definition: "Tests network connectivity", category: "network-trouble" },
+            { term: "Traceroute", definition: "Maps packet path", category: "network-trouble" },
+            { term: "Packet Loss", definition: "Caused by congestion", category: "network-trouble" },
+            { term: "nslookup", definition: "Checks DNS resolution", category: "network-trouble" },
+            { term: "Cable Tester", definition: "Verifies cable integrity", category: "network-trouble" },
+            { term: "Netstat", definition: "Shows active connections", category: "network-trouble" },
+            { term: "Wi-Fi Analyzer", definition: "Measures signal strength", category: "network-trouble" },
+            { term: "Loopback Test", definition: "Checks local interface", category: "network-trouble" },
+            { term: "Duplicate IPs", definition: "Caused by DHCP errors", category: "network-trouble" },
+            { term: "Switch Loop", definition: "Causes broadcast storms", category: "network-trouble" },
+            { term: "Wireshark", definition: "Captures packets", category: "network-trouble" },
+            { term: "Subnet Mask", definition: "Defines network scope", category: "network-trouble" }
+        ];
+
+        const explanations = {
+            "Subnetting": "Dividing a network into smaller segments improves efficiency by reducing broadcast traffic and enhances security by isolating parts of the network.",
+            "TCP": "This protocol ensures reliable data delivery by establishing a connection and checking for errors, making it ideal for applications like web browsing.",
+            "UDP": "This protocol sends data quickly without ensuring delivery, making it suitable for time-sensitive tasks like video streaming.",
+            "CIDR": "Classless Inter-Domain Routing allows flexible subnet masks, optimizing IP address allocation in modern networks.",
+            "DNS": "This system translates human-readable domain names into machine-readable IP addresses, enabling easy access to websites.",
+            "SDN": "Software-Defined Networking separates the control plane from the data plane, allowing centralized network management via software.",
+            "VLAN": "Virtual Local Area Networks group devices logically, improving traffic management without physical rewiring.",
+            "QoS": "Quality of Service ensures critical data, like voice calls, gets priority over less urgent traffic during congestion.",
+            "NAT": "Network Address Translation allows multiple devices to share a single public IP, conserving address space.",
+            "ARP": "Address Resolution Protocol discovers the hardware address linked to an IP, essential for local network communication.",
+            "APIPA": "Automatic Private IP Addressing assigns a fallback address when a device can’t reach a DHCP server, keeping it operational locally.",
+            "HTTPS": "Hypertext Transfer Protocol Secure encrypts web traffic, protecting data between users and servers.",
+
+            "Cat6a": "This cable supports high-speed data transfer over long distances, making it a standard for modern enterprise networks.",
+            "Switch": "A switch connects devices within a network, forwarding data only to the intended recipient, reducing congestion.",
+            "WAP": "A Wireless Access Point extends network reach wirelessly, enabling mobile devices to connect seamlessly.",
+            "SD-WAN": "Software-Defined Wide Area Networking optimizes traffic across multiple sites, improving performance and reliability.",
+            "802.11ax": "Wi-Fi 6 enhances speed and capacity, supporting more devices in dense environments like offices or stadiums.",
+            "DMZ": "A Demilitarized Zone hosts public servers outside the internal network, reducing exposure to attacks.",
+            "Load Balancer": "This device spreads traffic across servers, ensuring no single server is overwhelmed, improving uptime.",
+            "DHCP": "Dynamic Host Configuration Protocol automates IP address assignment, simplifying network setup.",
+            "VPN Concentrator": "This device manages encrypted tunnels for remote users, ensuring secure access to the network.",
+            "VxLAN": "Virtual extensible LAN overlays virtual networks on physical ones, enabling scalability in cloud environments.",
+            "STP": "Spanning Tree Protocol prevents loops in switched networks, maintaining stability.",
+            "Patch Panel": "This organizes cables in a rack, simplifying connections and maintenance in data centers.",
+
+            "SNMP": "Simple Network Management Protocol collects data from devices, helping administrators monitor performance.",
+            "Baseline": "Establishing a baseline allows comparison to detect anomalies in network behavior.",
+            "Wireshark": "This tool captures and analyzes packets, aiding in-depth network diagnostics.",
+            "SLA": "A Service Level Agreement defines expected performance, ensuring providers meet uptime goals.",
+            "NetFlow": "This protocol tracks traffic flows, providing insights into usage and bottlenecks.",
+            "DRP": "A Disaster Recovery Plan outlines steps to restore network functionality after a failure.",
+            "Latency": "Delay in data travel impacts performance, often requiring optimization.",
+            "Jitter": "Inconsistent packet timing can disrupt real-time applications like voice calls.",
+            "Syslog": "This collects logs from devices, centralizing event tracking for analysis.",
+            "UPS": "An Uninterruptible Power Supply keeps devices running during outages, preventing data loss.",
+            "MTBF": "Mean Time Between Failures predicts how long equipment lasts, aiding maintenance planning.",
+            "Change Management": "This process ensures network updates are planned and tested, minimizing disruptions.",
+
+            "Firewall": "This device blocks unauthorized traffic based on predefined rules, protecting the network.",
+            "DDoS": "A Distributed Denial of Service attack floods resources, aiming to disrupt service availability.",
+            "SSL/TLS": "These protocols encrypt data in transit, securing communications over the internet.",
+            "IPS": "An Intrusion Prevention System actively blocks threats, enhancing network defense.",
+            "WPA3": "Wi-Fi Protected Access 3 strengthens wireless security with robust encryption.",
+            "VPN": "A Virtual Private Network encrypts traffic, safeguarding remote connections.",
+            "Honeypot": "This decoy system lures attackers, allowing analysis of their methods.",
+            "Port Scanning": "Attackers use this to find open ports, seeking entry points into a network.",
+            "RADIUS": "Remote Authentication Dial-In User Service centralizes user verification for secure access.",
+            "SIEM": "Security Information and Event Management systems log and analyze threats in real time.",
+            "Zero-Day": "This exploit targets unknown vulnerabilities, requiring rapid response.",
+            "Brute Force": "This attack guesses passwords repeatedly, countered by strong policies.",
+
+            "Ping": "This tool sends packets to test if a device is reachable, diagnosing connectivity.",
+            "Traceroute": "This maps the route packets take, pinpointing where delays or failures occur.",
+            "Packet Loss": "Lost packets due to congestion disrupt communication, needing investigation.",
+            "nslookup": "This queries DNS servers to verify name resolution, troubleshooting domain issues.",
+            "Cable Tester": "This device ensures cables are wired correctly, ruling out physical faults.",
+            "Netstat": "This displays active connections, helping identify network activity.",
+            "Wi-Fi Analyzer": "This measures signal strength, optimizing wireless performance.",
+            "Loopback Test": "This verifies a device’s network interface works, isolating local issues.",
+            "Duplicate IPs": "Misconfigured address assignment causes conflicts, requiring correction.",
+            "Switch Loop": "Redundant paths flood the network, fixed by enabling loop prevention.",
+            "Wireshark": "This captures live traffic, enabling detailed issue analysis.",
+            "Subnet Mask": "An incorrect mask misaligns devices, fixed by proper configuration."
+        };
+
+        let currentFlashcard = 0;
+        let selectedTerm = null;
+        let matchesRemaining = 0;
+        let score = 0;
+        let currentSection = 0;
+        let completedSections = new Set();
+        const categoryOrder = ["network-concepts", "network-impl", "network-ops", "network-sec", "network-trouble"];
+        const categoryNames = {
+            "network-concepts": "Networking Concepts",
+            "network-impl": "Network Implementations",
+            "network-ops": "Network Operations",
+            "network-sec": "Network Security",
+            "network-trouble": "Network Troubleshooting"
+        };
+
+        const flashcardBtn = document.getElementById("flashcard-btn");
+        const matchingBtn = document.getElementById("matching-btn");
+
+        function setActiveMode(activeBtn, inactiveBtn) {
+            activeBtn.classList.add("active");
+            activeBtn.classList.remove("inactive");
+            inactiveBtn.classList.add("inactive");
+            inactiveBtn.classList.remove("active");
+        }
+
+        function showFlashcards() {
+            const flashcardContainer = document.getElementById("flashcard-container");
+            const matchingContainer = document.getElementById("matching-container");
+            if (!flashcardContainer || !matchingContainer) return;
+            flashcardContainer.style.display = "block";
+            matchingContainer.style.display = "none";
+            setActiveMode(flashcardBtn, matchingBtn);
+            loadFlashcard();
+        }
+
+        function loadFlashcard() {
+            const card = document.getElementById("flashcard");
+            const front = document.querySelector(".flashcard-front");
+            const back = document.querySelector(".flashcard-back");
+            if (!card || !front || !back || flashcards.length === 0) return;
+            front.textContent = flashcards[currentFlashcard].front;
+            back.textContent = flashcards[currentFlashcard].back;
+            card.classList.remove("flipped");
+        }
+
+        function nextFlashcard() {
+            currentFlashcard = (currentFlashcard + 1) % flashcards.length;
+            loadFlashcard();
+        }
+
+        document.getElementById("flashcard").addEventListener("click", function() {
+            this.classList.toggle("flipped");
+        });
+
+        function showMatching() {
+            const flashcardContainer = document.getElementById("flashcard-container");
+            const matchingContainer = document.getElementById("matching-container");
+            if (!flashcardContainer || !matchingContainer) return;
+            flashcardContainer.style.display = "none";
+            matchingContainer.style.display = "flex";
+            setActiveMode(matchingBtn, flashcardBtn);
+            currentSection = 0;
+            completedSections.clear();
+            score = 0; // Score resets on mode switch
+            setupMatchingSection();
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function playSound(frequency, duration) {
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            oscillator.connect(audioCtx.destination);
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), duration);
+        }
+
+        function playVictoryFanfare() {
+            const frequencies = [600, 800, 1000];
+            frequencies.forEach((freq, index) => {
+                const oscillator = audioCtx.createOscillator();
+                oscillator.type = "sine";
+                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.2);
+                oscillator.connect(audioCtx.destination);
+                oscillator.start(audioCtx.currentTime + index * 0.2);
+                oscillator.stop(audioCtx.currentTime + index * 0.2 + 0.2);
+            });
+        }
+
+        function addConfetti(element, count = 10) {
+            for (let i = 0; i < count; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.top = `${Math.random() * 100}%`;
+                confetti.style.background = ["#ffd700", "#ff4500", "#00ff00"][Math.floor(Math.random() * 3)];
+                element.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 1000);
+            }
+        }
+
+        function updateActiveCategory() {
+            const categoryButtons = document.querySelectorAll(".category-key button");
+            categoryButtons.forEach(btn => btn.classList.remove("active-category"));
+            const currentCat = categoryOrder[currentSection];
+            const activeBtn = document.querySelector(`.category-key button[data-category="${currentCat}"]`);
+            if (activeBtn) activeBtn.classList.add("active-category");
+        }
+
+        function setupMatchingSection() {
+            const termsDiv = document.getElementById("matching-terms");
+            const defsDiv = document.getElementById("matching-definitions");
+            const matchesLeftDiv = document.getElementById("matches-left");
+            const scoreDiv = document.getElementById("score");
+            const sectionLabel = document.getElementById("section-label");
+            const victoryMessage = document.getElementById("victory-message");
+            const body = document.body;
+
+            if (!termsDiv || !defsDiv || !matchesLeftDiv || !scoreDiv || !sectionLabel || !victoryMessage) return;
+
+            termsDiv.innerHTML = "<h3>Terms</h3>";
+            defsDiv.innerHTML = "<h3>Definitions</h3>";
+            victoryMessage.style.display = "none";
+
+            if (completedSections.size === categoryOrder.length) {
+                matchesLeftDiv.textContent = "Matches Left: 0";
+                scoreDiv.textContent = `Final Score: ${score}`;
+                sectionLabel.textContent = "Game Complete!";
+                body.style.background = "linear-gradient(135deg, #2a5298, #388e3c)";
+                victoryMessage.style.display = "block";
+                playVictoryFanfare();
+                addConfetti(victoryMessage, 20);
+                setTimeout(() => victoryMessage.style.display = "none", 2000);
+                return;
+            }
+
+            const currentCat = categoryOrder[currentSection];
+            const sectionPairs = matchingPairs.filter(pair => pair.category === currentCat);
+            if (sectionPairs.length === 0) return;
+
+            matchesRemaining = sectionPairs.length;
+            matchesLeftDiv.textContent = `Matches Left: ${matchesRemaining}`;
+            scoreDiv.textContent = `Score: ${score}`;
+            sectionLabel.textContent = `Section ${currentSection + 1}: ${categoryNames[currentCat]}`;
+            updateActiveCategory();
+            body.style.background = `linear-gradient(135deg, #1e3c72, ${getCategoryColor(currentCat)})`;
+
+            const shuffledTerms = shuffle([...sectionPairs]);
+            const shuffledDefs = shuffle([...sectionPairs]);
+
+            shuffledTerms.forEach(item => {
+                const div = document.createElement("div");
+                div.className = `matching-item ${item.category}`;
+                div.textContent = item.term;
+                div.addEventListener("click", () => selectTerm(div));
+                termsDiv.appendChild(div);
+            });
+
+            shuffledDefs.forEach(item => {
+                const div = document.createElement("div");
+                div.className = `matching-item ${item.category}`;
+                div.textContent = item.definition;
+                div.addEventListener("click", () => matchTerm(div));
+                defsDiv.appendChild(div);
+            });
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                "network-concepts": "#e3f2fd",
+                "network-impl": "#b3e5fc",
+                "network-ops": "#c8e6c9",
+                "network-sec": "#f3e5f5",
+                "network-trouble": "#fff3e0"
+            };
+            return colors[category] || "#2a5298";
+        }
+
+        function switchCategory(category) {
+            const index = categoryOrder.indexOf(category);
+            if (index !== -1) {
+                currentSection = index;
+                setupMatchingSection();
+            }
+        }
+
+        function selectTerm(item) {
+            if (selectedTerm) selectedTerm.classList.remove("selected");
+            const allItems = document.querySelectorAll(".matching-item");
+            allItems.forEach(i => i.classList.remove("incorrect"));
+            if (item.classList.contains("correct")) return;
+            selectedTerm = item;
+            selectedTerm.classList.add("selected");
+        }
+
+        function showModal(term, definition) {
+            const modal = document.getElementById("explanation-modal");
+            const modalTitle = document.getElementById("modal-title");
+            const modalDefinition = document.getElementById("modal-definition");
+            const modalExplanation = document.getElementById("modal-explanation");
+            if (!modal || !modalTitle || !modalDefinition || !modalExplanation) return;
+
+            modalTitle.textContent = `Correct Match: ${term}`;
+            modalDefinition.textContent = `Definition: ${definition}`;
+            modalExplanation.textContent = explanations[term] || "This term is a key concept in the CompTIA Network+ curriculum.";
+            modal.style.display = "block";
+            document.querySelector(".modal-overlay").style.display = "block";
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("explanation-modal");
+            if (!modal) return;
+            modal.style.display = "none";
+            document.querySelector(".modal-overlay").style.display = "none";
+            if (matchesRemaining === 0) {
+                setTimeout(() => {
+                    completedSections.add(categoryOrder[currentSection]);
+                    playSound(800, 300);
+                    currentSection = (currentSection + 1) % categoryOrder.length;
+                    while (completedSections.has(categoryOrder[currentSection]) && completedSections.size < categoryOrder.length) {
+                        currentSection = (currentSection + 1) % categoryOrder.length;
+                    }
+                    setupMatchingSection();
+                }, 500);
+            }
+        }
+
+        function matchTerm(defItem) {
+            if (!selectedTerm || defItem.classList.contains("correct")) return;
+            const term = selectedTerm.textContent;
+            const def = defItem.textContent;
+            const pair = matchingPairs.find(p => p.term === term && p.definition === def);
+            const matchesLeftDiv = document.getElementById("matches-left");
+            const scoreDiv = document.getElementById("score");
+
+            if (pair) {
+                selectedTerm.classList.add("correct");
+                defItem.classList.add("correct");
+                selectedTerm.removeEventListener("click", selectTerm);
+                defItem.removeEventListener("click", matchTerm);
+                playSound(600, 200);
+                addConfetti(selectedTerm, 10);
+                addConfetti(defItem, 10);
+                matchesRemaining--;
+                score += 10;
+                matchesLeftDiv.textContent = `Matches Left: ${matchesRemaining}`;
+                scoreDiv.textContent = `Score: ${score}`;
+                showModal(term, def);
+            } else {
+                selectedTerm.classList.add("incorrect");
+                defItem.classList.add("incorrect");
+                playSound(200, 100);
+                score -= 5;
+                scoreDiv.textContent = `Score: ${score}`;
+                setTimeout(() => {
+                    selectedTerm.classList.remove("incorrect");
+                    defItem.classList.remove("incorrect");
+                }, 1000);
+                selectedTerm.classList.remove("selected");
+                selectedTerm = null;
+            }
+        }
+
+        function resetMatching() {
+            currentSection = 0;
+            score = 0;
+            completedSections.clear();
+            document.body.style.background = "linear-gradient(135deg, #1e3c72, #2a5298)";
+            setupMatchingSection();
+        }
+
+        // Accessibility: Close modal with Esc key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeModal();
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (flashcards.length === 0 || matchingPairs.length === 0) {
+                document.querySelector("h1").textContent = "Error: Game Data Not Loaded";
+                return;
+            }
+            showFlashcards();
+        });
+    </script>
+</body>
+</html>
