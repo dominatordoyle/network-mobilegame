@@ -255,6 +255,67 @@
         .modal button:hover {
             background: #2e7d32;
         }
+        /* Access Code Styles */
+        #access-code-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        #access-code-container h2 {
+            color: #1e3c72;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #access-code-input {
+            padding: 15px;
+            width: 80%;
+            max-width: 300px;
+            font-size: 1.2em;
+            border: 2px solid #1e3c72;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        #access-code-submit {
+            padding: 12px 24px;
+            font-size: 1.2em;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        #access-code-submit:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+        #access-code-error {
+            color: #d32f2f;
+            font-size: 1em;
+            margin-top: 10px;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            #access-code-input {
+                width: 90%;
+                font-size: 1em;
+            }
+            #access-code-container h2 {
+                font-size: 1.5em;
+            }
+            #access-code-submit {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
+        }
         @keyframes pop {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -283,7 +344,16 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Access Code Container -->
+    <div id="access-code-container">
+        <h2>Enter Access Code</h2>
+        <input type="text" id="access-code-input" placeholder="Access Code" aria-label="Enter access code">
+        <button id="access-code-submit" onclick="checkAccessCode()">Submit</button>
+        <div id="access-code-error">Incorrect code. Please try again.</div>
+    </div>
+
+    <!-- Main Game Container -->
+    <div class="container" id="game-container" style="display: none;">
         <h1>Doyle's FunNetwork+ Annihilator Game</h1>
         <div class="mode-toggle">
             <button id="flashcard-btn" onclick="showFlashcards()" aria-label="Switch to Flashcard Mode">Flashcard Mode</button>
@@ -332,6 +402,37 @@
     </div>
 
     <script>
+        // Access Code Logic
+        const ACCESS_CODE = "DoyleFromTikTok";
+
+        function checkAccessCode() {
+            const input = document.getElementById("access-code-input").value.trim();
+            const errorDiv = document.getElementById("access-code-error");
+            const accessContainer = document.getElementById("access-code-container");
+            const gameContainer = document.getElementById("game-container");
+
+            if (input === ACCESS_CODE) {
+                accessContainer.style.display = "none";
+                gameContainer.style.display = "block";
+                // Initialize the game
+                if (flashcards.length > 0 && matchingPairs.length > 0) {
+                    showFlashcards();
+                }
+            } else {
+                errorDiv.style.display = "block";
+                setTimeout(() => {
+                    errorDiv.style.display = "none";
+                }, 3000);
+            }
+        }
+
+        // Allow Enter key to submit code
+        document.getElementById("access-code-input").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                checkAccessCode();
+            }
+        });
+
         // Note: AudioContext may require user interaction to start in some browsers due to autoplay policies
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -832,14 +933,6 @@
         // Accessibility: Close modal with Esc key
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") closeModal();
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            if (flashcards.length === 0 || matchingPairs.length === 0) {
-                document.querySelector("h1").textContent = "Error: Game Data Not Loaded";
-                return;
-            }
-            showFlashcards();
         });
     </script>
 </body>
