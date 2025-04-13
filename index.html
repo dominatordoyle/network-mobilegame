@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompTIA Network+ Annihilator Game</title>
+    <title>Doyle's FunNetwork+ Annihilator Game</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -255,32 +255,6 @@
         .modal button:hover {
             background: #2e7d32;
         }
-        #access-gate {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            background: #1e3c72;
-            color: #fff;
-        }
-        #access-gate input {
-            padding: 10px;
-            font-size: 1em;
-            border-radius: 5px;
-            border: none;
-            margin: 10px;
-            width: 200px;
-        }
-        #access-gate button {
-            padding: 10px 20px;
-        }
-        #error-message {
-            color: #ffcdd2;
-            display: none;
-            margin-top: 10px;
-        }
         @keyframes pop {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -309,101 +283,58 @@
     </style>
 </head>
 <body>
-    <!-- Access Gate -->
-    <div id="access-gate">
-        <h2>Enter Gumroad Access Code</h2>
-        <input type="text" id="access-code" placeholder="Enter code">
-        <button onclick="checkCode()">Submit</button>
-        <p id="error-message">Invalid code. Please try again.</p>
-    </div>
+    <div class="container">
+        <h1>Doyle's FunNetwork+ Annihilator Game</h1>
+        <div class="mode-toggle">
+            <button id="flashcard-btn" onclick="showFlashcards()" aria-label="Switch to Flashcard Mode">Flashcard Mode</button>
+            <button id="matching-btn" onclick="showMatching()" aria-label="Switch to Matching Mode">Matching Mode</button>
+        </div>
 
-    <!-- Game Content (Hidden by Default) -->
-    <div id="game-container" style="display: none;">
-        <div class="container">
-            <h1>CompTIA Network+ Annihilator Game</h1>
-            <div class="mode-toggle">
-                <button id="flashcard-btn" onclick="showFlashcards()" aria-label="Switch to Flashcard Mode">Flashcard Mode</button>
-                <button id="matching-btn" onclick="showMatching()" aria-label="Switch to Matching Mode">Matching Mode</button>
+        <!-- Flashcard Mode -->
+        <div id="flashcard-container" class="flashcard-container">
+            <div id="flashcard" class="flashcard">
+                <div class="flashcard-front"></div>
+                <div class="flashcard-back"></div>
             </div>
+            <button onclick="nextFlashcard()">Next Card</button>
+        </div>
 
-            <!-- Flashcard Mode -->
-            <div id="flashcard-container" class="flashcard-container">
-                <div id="flashcard" class="flashcard">
-                    <div class="flashcard-front"></div>
-                    <div class="flashcard-back"></div>
-                </div>
-                <button onclick="nextFlashcard()">Next Card</button>
+        <!-- Matching Mode -->
+        <div id="matching-container" class="matching-container">
+            <div class="matching-status">
+                <div id="matches-left"></div>
+                <div id="score"></div>
+                <div id="section-label"></div>
             </div>
-
-            <!-- Matching Mode -->
-            <div id="matching-container" class="matching-container">
-                <div class="matching-status">
-                    <div id="matches-left"></div>
-                    <div id="score"></div>
-                    <div id="section-label"></div>
-                </div>
-                <div class="category-key" id="category-key">
-                    <button class="network-concepts" data-category="network-concepts" onclick="switchCategory('network-concepts')">Networking Concepts</button>
-                    <button class="network-impl" data-category="network-impl" onclick="switchCategory('network-impl')">Network Implementations</button>
-                    <button class="network-ops" data-category="network-ops" onclick="switchCategory('network-ops')">Network Operations</button>
-                    <button class="network-sec" data-category="network-sec" onclick="switchCategory('network-sec')">Network Security</button>
-                    <button class="network-trouble" data-category="network-trouble" onclick="switchCategory('network-trouble')">Network Troubleshooting</button>
-                </div>
-                <div class="matching-content">
-                    <div class="matching-terms" id="matching-terms"></div>
-                    <div class="matching-definitions" id="matching-definitions"></div>
-                </div>
-                <div style="width: 100%; text-align: center; margin-top: 20px;">
-                    <button onclick="resetMatching()">Reset</button>
-                </div>
+            <div class="category-key" id="category-key">
+                <button class="network-concepts" data-category="network-concepts" onclick="switchCategory('network-concepts')">Networking Concepts</button>
+                <button class="network-impl" data-category="network-impl" onclick="switchCategory('network-impl')">Network Implementations</button>
+                <button class="network-ops" data-category="network-ops" onclick="switchCategory('network-ops')">Network Operations</button>
+                <button class="network-sec" data-category="network-sec" onclick="switchCategory('network-sec')">Network Security</button>
+                <button class="network-trouble" data-category="network-trouble" onclick="switchCategory('network-trouble')">Network Troubleshooting</button>
             </div>
-            <div id="victory-message">Network+ Master!</div>
-            <div class="modal-overlay" onclick="closeModal()"></div>
-            <div id="explanation-modal" class="modal" role="dialog" aria-labelledby="modal-title">
-                <h4 id="modal-title"></h4>
-                <p id="modal-definition"></p>
-                <p id="modal-explanation"></p>
-                <button onclick="closeModal()">Close</button>
+            <div class="matching-content">
+                <div class="matching-terms" id="matching-terms"></div>
+                <div class="matching-definitions" id="matching-definitions"></div>
             </div>
+            <div style="width: 100%; text-align: center; margin-top: 20px;">
+                <button onclick="resetMatching()">Reset</button>
+            </div>
+        </div>
+        <div id="victory-message">Network+ Master!</div>
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div id="explanation-modal" class="modal" role="dialog" aria-labelledby="modal-title">
+            <h4 id="modal-title"></h4>
+            <p id="modal-definition"></p>
+            <p id="modal-explanation"></p>
+            <button onclick="closeModal()">Close</button>
         </div>
     </div>
 
     <script>
-        // AudioContext setup
+        // Note: AudioContext may require user interaction to start in some browsers due to autoplay policies
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Access code check
-        const VALID_CODE = "Network+IsMyBitch!";
-
-        function checkCode() {
-            const inputCode = document.getElementById("access-code").value.trim();
-            const errorMessage = document.getElementById("error-message");
-            if (inputCode === VALID_CODE) {
-                document.getElementById("access-gate").style.display = "none";
-                document.getElementById("game-container").style.display = "block";
-                localStorage.setItem("gumroadAccessGranted", "true"); // Persist access
-                showFlashcards(); // Start game in flashcard mode
-            } else {
-                errorMessage.style.display = "block";
-                setTimeout(() => errorMessage.style.display = "none", 2000);
-            }
-        }
-
-        // Check if already granted access
-        document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem("gumroadAccessGranted") === "true") {
-                document.getElementById("access-gate").style.display = "none";
-                document.getElementById("game-container").style.display = "block";
-                showFlashcards();
-            }
-        });
-
-        // Allow Enter key to submit code
-        document.getElementById("access-code").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") checkCode();
-        });
-
-        // Game data
         const flashcards = [
             { front: "What is the purpose of subnetting?", back: "Divides a network into smaller subnetworks for efficiency and security", category: "network-concepts" },
             { front: "What protocol operates at Layer 4 of the OSI model?", back: "TCP (Transmission Control Protocol)", category: "network-concepts" },
@@ -901,6 +832,14 @@
         // Accessibility: Close modal with Esc key
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") closeModal();
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (flashcards.length === 0 || matchingPairs.length === 0) {
+                document.querySelector("h1").textContent = "Error: Game Data Not Loaded";
+                return;
+            }
+            showFlashcards();
         });
     </script>
 </body>
